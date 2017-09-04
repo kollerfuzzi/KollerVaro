@@ -8,38 +8,61 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class Varo implements Serializable {
 	
 	private List<Team> teams;
 	private static String dir;
 	
-	public Varo(String dir) {
+	public Varo() {
 		teams = new ArrayList<>();
-		Varo.dir = dir;
 	}
 	
-	public void addTeam(Team toAdd) {
+	public void addTeam(Team toAdd, CommandSender sender) {
 		for (Team tm: teams) {
 			for(int i = 0;i < tm.getPlayers().size();++i) {
-				for(int j = 0;j<toAdd.getPlayers().size();++i) {
+				for(int j = 0;j<toAdd.getPlayers().size();++j) {
 					
 					if(tm.getPlayers().get(i).equals(toAdd.getPlayers().get(j))){
-						Bukkit.broadcastMessage("Player " + Bukkit.getPlayer(tm.getPlayers().get(i)) + "is already in a team");
+						sender.sendMessage("Player " + Bukkit.getPlayer(tm.getPlayers().get(i)) + "is already in a team");
 						return;
 					} 
 				}
 			}
 		}
 		teams.add(toAdd);
+		serialize();
 	}
 	
-	public void removeTeam(Team toRemove) {
-		teams.remove(toRemove);
+	public void removeTeam(String toRemoveName, CommandSender sender) {
+		Optional<Team> foundTeam =  teams.stream().filter(t -> t.getTeamName().equals(toRemoveName)).findAny();
+		if(foundTeam.isPresent()) {
+			teams.remove(foundTeam.get());
+			serialize();
+		} else {
+			sender.sendMessage("Team \"" + toRemoveName + "\" not found!");
+		}
+	}
+	
+	public void sendTeamList(CommandSender sender) {
+		String str = "===TEAMS===";
+		for (Team tm: teams) {
+			str += "\n" + tm.getTeamName().toUpperCase() + ": ";
+			for (UUID id: tm.getPlayers()) {
+				str += Bukkit.getPlayer(id).getName() + ", ";
+			}
+			str = str.substring(0, str.length() - 2);
+		}
+		sender.sendMessage(str);
 	}
 	
 	public List<Team> getTeams() {
@@ -52,13 +75,9 @@ public class Varo implements Serializable {
 		try {
 			oos = new ObjectOutputStream(new FileOutputStream(dir+File.separator+"teams.kv"));
 			oos.writeObject(this);
-		} catch (IOException e) {
-			
-		}
-		try {
 			oos.close();
 		} catch (IOException e) {
-
+			
 		}
 	}
 
@@ -73,11 +92,16 @@ public class Varo implements Serializable {
 			Bukkit.broadcastMessage("no file found");
 		} catch (ClassNotFoundException e) {
 		}
-		 
-		try {
-			ois.close();
-		} catch (IOException e) {
+		if(ois != null) {
+			try {
+				ois.close();
+			} catch (IOException e) {
+			}
 		}
 		return v;
+	}
+	
+	public static void setDir(String dir) {
+		Varo.dir = dir;
 	}
 }

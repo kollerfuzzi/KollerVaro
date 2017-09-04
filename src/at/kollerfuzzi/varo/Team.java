@@ -10,8 +10,32 @@ import org.bukkit.OfflinePlayer;
 
 public class Team implements Serializable {
 	
+	private String teamName;
 	private List<UUID> players;
-	private int teleportsLeft = 3;
+	private int teleportsLeft;
+	private static int maxTeleports = 3;
+	
+	public Team(String teamName, String... playerNames) {
+		players = new ArrayList<>();
+		this.teamName = teamName;
+		teleportsLeft = maxTeleports;
+		for (String player: playerNames) {
+			UUID uid = Bukkit.getPlayer(player).getUniqueId();
+			players.add(uid);
+		}
+	}
+	
+	public String getTeamName() {
+		return this.teamName;
+	}
+	
+	public void setTeamName(String teamName) {
+		this.teamName = teamName;
+	}
+	
+	public List<UUID> getPlayers() {
+		return players;
+	}
 	
 	public int getTeleportsLeft() {
 		return teleportsLeft;
@@ -19,19 +43,6 @@ public class Team implements Serializable {
 
 	public void setTeleportsLeft(int teleportsLeft) {
 		this.teleportsLeft = teleportsLeft;
-	}
-
-	public Team(String... playerNames) {
-		players = new ArrayList<>();
-		for (String player: playerNames) {
-			@SuppressWarnings("deprecation")
-			UUID uid = Bukkit.getPlayer(player).getUniqueId();
-			players.add(uid);
-		}
-	}
-	
-	public List<UUID> getPlayers() {
-		return players;
 	}
 	
 }
