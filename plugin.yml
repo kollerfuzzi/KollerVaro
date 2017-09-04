@@ -1,0 +1,8 @@
+name: KollerVaro
+main: at.kollerfuzzi.varo.Main
+version: 1.0
+commands:
+  mkteam:
+    description: kills you
+    usage: /<command> [teamname] [players...]
+    
