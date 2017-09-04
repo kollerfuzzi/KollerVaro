@@ -3,6 +3,14 @@ main: at.kollerfuzzi.varo.Main
 version: 1.0
 commands:
   mkteam:
-    description: kills you
+    description: create a VARO team
     usage: /<command> [teamname] [players...]
-    
+  rmteam:
+    description: remove a VARO team
+    usage: /<command> [teamname]
+  tptm:
+    description: Teleports you to a teammate, but only a limited number of times.
+    usage: /<command> [name of teammate]
+  tptmlimit:
+    description: Get/set maximum number of teleports to a teammate per team.
+    usage: /<command> ([number])

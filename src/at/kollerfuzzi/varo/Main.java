@@ -1,5 +1,6 @@
 package at.kollerfuzzi.varo;
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -43,8 +44,20 @@ public class Main extends JavaPlugin {
 					
 				}
 				break;
+			case "rmteam":
+				break;
+			case "tptm":
+				break;
+			case "tptmlimit":
+				break;
+			case "killmyself":
+				if(sender instanceof Player) {
+					Player p = (Player) sender;
+					p.sendMessage("Bye " + p.getName() + "!");
+					p.setHealth(0);
+				}
 			default: // EIN GUTER PROGRAMMIERER MACHT STETS EIN DEFAULT
-				return false;
+				throw new InvalidParameterException("Command \"" + label + "\" not supported by KollerVaro!");
 		}
 		return true;
 	}
