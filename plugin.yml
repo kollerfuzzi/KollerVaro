@@ -14,3 +14,6 @@ commands:
   tptmlimit:
     description: Get/set maximum number of teleports to a teammate per team.
     usage: /<command> ([number])
+  killmyself:
+    description: Kills you
+    usage: /<command>
