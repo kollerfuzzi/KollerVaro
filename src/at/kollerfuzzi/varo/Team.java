@@ -8,10 +8,19 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
-public class Team implements Serializable{
+public class Team implements Serializable {
 	
 	private List<UUID> players;
+	private int teleportsLeft = 3;
 	
+	public int getTeleportsLeft() {
+		return teleportsLeft;
+	}
+
+	public void setTeleportsLeft(int teleportsLeft) {
+		this.teleportsLeft = teleportsLeft;
+	}
+
 	public Team(String... playerNames) {
 		players = new ArrayList<>();
 		for (String player: playerNames) {
