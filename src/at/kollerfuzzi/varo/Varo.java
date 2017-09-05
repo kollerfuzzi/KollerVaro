@@ -92,9 +92,7 @@ public class Varo implements Serializable {
 	}
 	
 	public Team getPlayerTeam(String playerName) {
-		Optional<Team> tm = teams.stream()
-				.filter(t -> t.getPlayers().contains(playerName))
-				.findAny();
+		Optional<Team> tm = teams.stream().filter(t -> t.getPlayers().contains(playerName)).findAny();
 		if(tm.isPresent()) {
 			return tm.get();
 		} else {
@@ -103,7 +101,13 @@ public class Varo implements Serializable {
 	}
 	
 	public boolean areInSameTeam(String p1, String p2) {
-		return getTeam(p1).equals(getTeam(p2));
+		Team p1team = getPlayerTeam(p1);
+		Team p2team = getPlayerTeam(p2);
+		if(p1team != null && p2team != null) {
+			return p1team == p2team;
+		} else {
+			return false;
+		}
 	}
 	
 	public void serialize() {
