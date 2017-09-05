@@ -2,6 +2,7 @@ package at.kollerfuzzi.varo;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,7 +12,7 @@ import org.bukkit.OfflinePlayer;
 public class Team implements Serializable {
 	
 	private String teamName;
-	private List<UUID> players;
+	private List<String> players;
 	private int teleportsLeft;
 	private static int maxTeleports = 3;
 	
@@ -19,10 +20,7 @@ public class Team implements Serializable {
 		players = new ArrayList<>();
 		this.teamName = teamName;
 		teleportsLeft = maxTeleports;
-		for (String player: playerNames) {
-			UUID uid = Bukkit.getPlayer(player).getUniqueId();
-			players.add(uid);
-		}
+		players.addAll(Arrays.asList(playerNames));
 	}
 	
 	public String getTeamName() {
@@ -33,7 +31,7 @@ public class Team implements Serializable {
 		this.teamName = teamName;
 	}
 	
-	public List<UUID> getPlayers() {
+	public List<String> getPlayers() {
 		return players;
 	}
 	

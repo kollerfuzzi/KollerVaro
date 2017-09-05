@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -28,75 +29,99 @@ public class Varo implements Serializable {
 	}
 	
 	public void addTeam(Team toAdd, CommandSender sender) {
+		boolean doAdd = true;
 		for (Team tm: teams) {
-			for(int i = 0;i < tm.getPlayers().size();++i) {
-				for(int j = 0;j<toAdd.getPlayers().size();++j) {
-					
+			if(tm.getTeamName().equalsIgnoreCase(toAdd.getTeamName())) {
+				sender.sendMessage("Teamname \"" + tm.getTeamName() + "\" is already used!");
+				doAdd = false;
+			}
+			for(int i = 0; i < tm.getPlayers().size(); ++i) {
+				for(int j = 0; j < toAdd.getPlayers().size(); ++j) {
 					if(tm.getPlayers().get(i).equals(toAdd.getPlayers().get(j))){
-						sender.sendMessage("Player " + Bukkit.getPlayer(tm.getPlayers().get(i)) + "is already in a team");
-						return;
+						sender.sendMessage("Player \"" + tm.getPlayers().get(i) + "\" is already in a team");
+						doAdd = false;
 					} 
 				}
 			}
 		}
-		teams.add(toAdd);
-		serialize();
+		if(doAdd) {
+			teams.add(toAdd);
+			serialize();
+			sender.sendMessage("Added team \"" + toAdd.getTeamName() + "\" with members: " + 
+				toAdd.getPlayers().stream().collect(Collectors.joining(", ")));
+		}
 	}
 	
 	public void removeTeam(String toRemoveName, CommandSender sender) {
-		Optional<Team> foundTeam =  teams.stream().filter(t -> t.getTeamName().equals(toRemoveName)).findAny();
+		Optional<Team> foundTeam =  teams.stream().filter(t -> 
+			t.getTeamName().equalsIgnoreCase(toRemoveName)).findAny();
 		if(foundTeam.isPresent()) {
 			teams.remove(foundTeam.get());
 			serialize();
+			sender.sendMessage("Team \"" + toRemoveName + "\" deleted");
 		} else {
 			sender.sendMessage("Team \"" + toRemoveName + "\" not found!");
 		}
 	}
 	
 	public void sendTeamList(CommandSender sender) {
-		String str = "===TEAMS===";
-		for (Team tm: teams) {
-			str += "\n" + tm.getTeamName().toUpperCase() + ": ";
-			for (UUID id: tm.getPlayers()) {
-				str += Bukkit.getPlayer(id).getName() + ", ";
-			}
-			str = str.substring(0, str.length() - 2);
+		if(teams.size() != 0) {
+			StringBuilder str = new StringBuilder("===TEAMS===");
+			teams.stream().sorted((a, b) -> a.getTeamName().compareTo(b.getTeamName())).forEach(tm -> {
+				str.append("\n" + tm.getTeamName().toUpperCase() + ": ");
+				str.append(tm.getPlayers().stream().sorted().collect(Collectors.joining(", ")));
+			});
+			sender.sendMessage(str.toString());
+		} else {
+			sender.sendMessage("No teams created.");
 		}
-		sender.sendMessage(str);
 	}
 	
 	public List<Team> getTeams() {
 		return teams;
 	}
 	
+	public Team getTeam(String name) {
+		Optional<Team> tm = teams.stream().filter(t -> 
+			t.getTeamName().equalsIgnoreCase(name)).findAny();
+		if(tm.isPresent()) {
+			return tm.get();
+		} else {
+			return null;
+		}
+	}
+	
+	public Team getPlayerTeam(String playerName) {
+		Optional<Team> tm = teams.stream()
+				.filter(t -> t.getPlayers().contains(playerName))
+				.findAny();
+		if(tm.isPresent()) {
+			return tm.get();
+		} else {
+			return null;
+		}
+	}
+	
+	public boolean areInSameTeam(String p1, String p2) {
+		return getTeam(p1).equals(getTeam(p2));
+	}
+	
 	public void serialize() {
-		ObjectOutputStream oos = null;
-		
-		try {
-			oos = new ObjectOutputStream(new FileOutputStream(dir+File.separator+"teams.kv"));
+		try (ObjectOutputStream oos = 
+				new ObjectOutputStream(new FileOutputStream(dir+File.separator+"teams.kv"))){
 			oos.writeObject(this);
-			oos.close();
 		} catch (IOException e) {
-			
+			Bukkit.getLogger().log(Level.WARNING, "There was an error while saving!", e);
 		}
 	}
 
 	public static Varo deserialize() {
-		ObjectInputStream ois = null;
 		Varo v = null;
-		
-		 try {
-			ois = new ObjectInputStream(new FileInputStream(dir+File.separator+"teams.kv"));
+		try (ObjectInputStream ois = 
+				new ObjectInputStream(new FileInputStream(dir + File.separator + "teams.kv"))){
 			v =  (Varo)ois.readObject();
-		} catch (IOException e) {
-			Bukkit.broadcastMessage("no file found");
-		} catch (ClassNotFoundException e) {
-		}
-		if(ois != null) {
-			try {
-				ois.close();
-			} catch (IOException e) {
-			}
+		} catch (ClassNotFoundException | IOException e) {
+			Bukkit.getLogger().log(Level.WARNING, "There was an error while loading!");
 		}
 		return v;
 	}

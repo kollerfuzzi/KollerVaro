@@ -1,5 +1,6 @@
 package at.kollerfuzzi.varo;
 
+import java.io.File;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,24 +19,26 @@ import org.bukkit.potion.PotionEffectType;
 import com.google.common.base.Ticker;
 import com.mysql.fabric.xmlrpc.base.Array;
 
-/*
- * Bugs:
- * 	If player is not on server while adding -> server crashes
- *  uuid -> name?
- *  list teams one missing
- *  rmteams not case sensitive
- */
 public class Main extends JavaPlugin {
 	
 	Varo varo;
+	Events evtListener;
 
 	@Override
 	public void onEnable() {
-		Varo.setDir(getDataFolder().toString());
+		//Varo
+		File dataFolder = getDataFolder();
+		if(!dataFolder.exists()) {
+			dataFolder.mkdirs();
+		}
+		Varo.setDir(dataFolder.getAbsolutePath());
 		varo = Varo.deserialize();
 		if(varo == null) {
 			varo = new Varo();
 		}
+		
+		//Events
+		evtListener = new Events(varo, this);
 	}
 	
 	@Override
@@ -48,7 +51,7 @@ public class Main extends JavaPlugin {
 		switch(label.toLowerCase()) {
 			case "mkteam":
 				if(args.length >= 3) {
-					Team toAdd = new Team(args[0], Arrays.copyOfRange(args, 1, args.length - 1));
+					Team toAdd = new Team(args[0], Arrays.copyOfRange(args, 1, args.length));
 					varo.addTeam(toAdd, sender);
 				} else {
 					commandOk = false;
