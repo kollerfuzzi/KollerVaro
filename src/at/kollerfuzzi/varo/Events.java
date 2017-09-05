@@ -1,6 +1,7 @@
 package at.kollerfuzzi.varo;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -10,6 +11,8 @@ import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Events implements Listener {
@@ -36,15 +39,25 @@ public class Events implements Listener {
 				if (dmgArrow.getShooter() instanceof Player) {
 					damager = (Player)dmgArrow.getShooter();
 				}
-			} else {
-				Bukkit.broadcastMessage("Damage not from Player!");
 			}
 			
-			
-			Bukkit.broadcastMessage(damager.getName() + " hits " + damagedPlayer.getName());
-			if(varo.areInSameTeam(damager.getName(), damagedPlayer.getName())) {
+			if(damager != null && varo.areInSameTeam(damager.getName(), damagedPlayer.getName())) {
 				evt.setCancelled(true);
-				Bukkit.broadcastMessage("DAMAGE CANCELLED!");
+				damager.sendMessage("You can't damage your teammate!");
+			}
+		}
+	}
+	
+	@EventHandler
+	public void onKill(PlayerDeathEvent evt) {
+		if (evt.getEntity() instanceof Player && evt.getEntity().getKiller() != null && 
+				evt.getEntity().getKiller() instanceof Player) {
+			Player killed = (Player)evt.getEntity();
+			Player killer = (Player)evt.getEntity().getKiller();
+			if(!varo.areInSameTeam(killed.getName(), killer.getName())) {
+				killer.giveExpLevels(2);
+				killer.getInventory().addItem(new ItemStack(Material.DIAMOND, 4));
+				killer.sendMessage("You killed an enemy player!");
 			}
 		}
 	}
